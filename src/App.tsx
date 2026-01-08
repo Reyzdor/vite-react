@@ -15,7 +15,7 @@ function App() {
     };
 
     fetchPrice();
-    const interval = setInterval(fetchPrice, 2000); 
+    const interval = setInterval(fetchPrice, 100); 
     return () => clearInterval(interval);
   }, []);
 
