@@ -41,7 +41,7 @@ function App() {
 
   return (
     <div style={{ backgroundColor: backgroundC, minHeight: "100vh", width: "100vw", overflowX: "hidden" }}>
-      <div className="max-w-[448px] w-full mx-auto px-4">
+      <div className="max-w-[500px] w-full mx-auto px-4">
         <h1 style={{ color: "#FFFFFF", fontWeight: 500, fontSize: 24, paddingTop: 20 }}>Stratum</h1>
 
         <div className="mt-6 relative">
