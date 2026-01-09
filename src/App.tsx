@@ -40,8 +40,8 @@ function App() {
   }, []);
 
   return (
-    <div style={{ backgroundColor: backgroundC, minHeight: "100vh", width: "100vw" }}>
-      <div className="max-w-[448px] mx-auto px-4">
+    <div style={{ backgroundColor: backgroundC, minHeight: "100vh", width: "100vw", overflowX: "hidden" }}>
+      <div className="max-w-[448px] w-full mx-auto px-4">
         <h1 style={{ color: "#FFFFFF", fontWeight: 500, fontSize: 24, paddingTop: 20 }}>Stratum</h1>
 
         <div className="mt-6 relative">
@@ -82,7 +82,7 @@ function App() {
               <button
                 key={coin.id}
                 className="w-full bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-700 transition-all active:scale-[0.98] flex justify-between items-start"
-                style={{ height: "160px", padding: "5px 20px" }}
+                style={{ height: "160px", padding: "5px 20px", boxSizing: "border-box" }}
               >
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", marginTop: 5 }}>
                   <span style={{ fontSize: 18, fontWeight: 600, color: "#FFFFFF" }}>
