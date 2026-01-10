@@ -17,7 +17,7 @@ export default function CoinCard({ id, name, price }: Props) {
   const [trend, setTrend] = useState<number[]>(() => {
     const saved = localStorage.getItem(sparklineKey)
     if (saved) return JSON.parse(saved)
-    return Array(10).fill(price)
+    return Array(MAX_POINTS).fill(price) 
   })
 
   const storedBasePrice = localStorage.getItem(basePriceKey)
@@ -33,6 +33,7 @@ export default function CoinCard({ id, name, price }: Props) {
   }, [])
 
   useEffect(() => {
+    if (!trend.length) return
     const lastPrice = trend[trend.length - 1]
     if (price !== lastPrice) {
       const diff = price - basePrice.current
@@ -40,7 +41,7 @@ export default function CoinCard({ id, name, price }: Props) {
       setChange(percent)
       localStorage.setItem(changeKey, percent.toString())
 
-      setTrend((prev) => {
+      setTrend(prev => {
         const next = [...prev, price].slice(-MAX_POINTS)
         localStorage.setItem(sparklineKey, JSON.stringify(next))
         return next

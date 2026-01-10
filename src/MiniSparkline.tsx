@@ -5,7 +5,7 @@ type Props = {
 }
 
 export default function MiniSparkline({ data, positive, height = 40 }: Props) {
-  if (data.length < 2) return null
+  if (!data || data.length < 2) return null
 
   const SVG_WIDTH = 100
   const SVG_HEIGHT = height
