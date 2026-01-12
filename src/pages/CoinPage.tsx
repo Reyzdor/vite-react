@@ -20,7 +20,7 @@ export default function CoinPage({ coins }: Props) {
 
   return (
     <div className="gradient-bg min-h-screen">
-      <div className="max-w-[500px] mx-auto">
+      <div className="max-w-[500px] w-full mx-auto px-4">
         
         <div className="sticky top-0 z-10 border-b border-gray-800 bg-transparent backdrop-blur">
           <div className="px-4 py-4 flex items-center gap-3">
