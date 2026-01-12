@@ -5,11 +5,12 @@ type Props = {
   id: string
   name: string
   price: number
+  onClick: () => void
 }
 
 const MAX_POINTS = 50
 
-export default function CoinCard({ id, name, price }: Props) {
+export default function CoinCard({ id, name, price, onClick }: Props) {
   const sparklineKey = `sparkline_${id}`
   const changeKey = `change_${id}`
   const basePriceKey = `basePrice_${id}`
@@ -54,6 +55,7 @@ export default function CoinCard({ id, name, price }: Props) {
 
   return (
     <button
+    onClick={onClick}
       style={{ height: "170px" }}
       className="w-full bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-all active:scale-[0.98] flex flex-col justify-between"
     >
