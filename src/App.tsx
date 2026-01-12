@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Routes, Route, useNavigate } from "react-router-dom"
 import CoinPage from "./pages/CoinPage"
 import CoinCard from "./CoinCards"
+import searchIcon from "./media/searchsvg.svg"
 
 type Coin = { id: string; name: string }
 
@@ -51,6 +52,17 @@ function App() {
               <h1 className="text-white font-medium text-2xl pt-5">Stratum</h1>
 
               <div className="mt-6 relative">
+               <img
+                src={searchIcon}
+                alt="search"
+                className="
+                  absolute left-4 top-1/2 -translate-y-1/2
+                  w-5 h-5
+                  opacity-70
+                  brightness-0 invert
+                "
+              />
+
                 <input
                   type="text"
                   placeholder="Поиск монет..."
