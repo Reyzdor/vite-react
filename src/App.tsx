@@ -65,7 +65,7 @@ function App() {
 
                 <input
                   type="text"
-                  placeholder="Поиск монет...а"
+                  placeholder="Поиск монет..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
