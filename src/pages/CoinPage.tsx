@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { createChart, LineSeries } from "lightweight-charts";
+import { useEffect, useRef } from "react";
 
 type Coin = {
   id: string;
@@ -17,6 +19,28 @@ export default function CoinPage({ coins }: Props) {
   const symbol = id?.toLowerCase() ?? "";
   const coin = coins.find(c => c.id.toLowerCase() === symbol);
   const iconSrc = `/icons/${symbol}.svg`;
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const chart = createChart(chartRef.current, {
+      width: 450,
+      height: 500,
+    });
+
+    const lineSeries = chart.addSeries(LineSeries);
+    lineSeries.setData([
+      { time: "2019-04-11", value: 80.01 },
+      { time: "2019-04-12", value: 96.63 },
+      { time: "2019-04-13", value: 76.64 },
+      { time: "2019-04-14", value: 81.89 },
+      { time: "2019-04-15", value: 74.43 },
+    ]);
+    return () => chart.remove();
+
+  }, []);
+
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -54,6 +78,10 @@ export default function CoinPage({ coins }: Props) {
         </div>
 
         <div className="min-h-[calc(100vh-72px)]">
+        </div>
+
+        <div className="mt-4">
+          <div ref={chartRef}></div>
         </div>
 
       </div>
