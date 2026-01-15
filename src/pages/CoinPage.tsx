@@ -1,11 +1,19 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { createChart, LineSeries } from "lightweight-charts";
-import { useEffect, useRef } from "react";
+import CandlestickChart from "../CandlestickChart";
+import { useEffect, useState } from "react";
 
 type Coin = {
   id: string;
   name: string;
+};
+
+type Candle = {
+  time: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
 };
 
 type Props = {
@@ -19,33 +27,51 @@ export default function CoinPage({ coins }: Props) {
   const symbol = id?.toLowerCase() ?? "";
   const coin = coins.find(c => c.id.toLowerCase() === symbol);
   const iconSrc = `/icons/${symbol}.svg`;
-  const chartRef = useRef<HTMLDivElement>(null);
+
+  const [candles, setCandles] = useState<Candle[]>([]);
 
   useEffect(() => {
-    if (!chartRef.current) return;
+    let isMounted = true;
 
-    const chart = createChart(chartRef.current, {
-      width: 450,
-      height: 500,
-    });
+    const fetchPrice = async () => {
+      try {
+        const res = await fetch("https://main-crypto.onrender.com/price");
+        const data = await res.json();
+        if (!isMounted) return;
 
-    const lineSeries = chart.addSeries(LineSeries);
-    lineSeries.setData([
-      { time: "2019-04-11", value: 80.01 },
-      { time: "2019-04-12", value: 96.63 },
-      { time: "2019-04-13", value: 76.64 },
-      { time: "2019-04-14", value: 81.89 },
-      { time: "2019-04-15", value: 74.43 },
-    ]);
-    return () => chart.remove();
+        const priceRaw = data[coin?.id.toUpperCase() || "BTC"];
+        if (!priceRaw) return;
 
-  }, []);
+        const price = Number(priceRaw);
+        if (isNaN(price)) return;
 
+        const last = candles[candles.length - 1];
+        const open = last?.close || price;
+        const close = price;
+        const high = Math.max(open, close);
+        const low = Math.min(open, close);
+        const time = new Date().toLocaleTimeString().slice(0, 5);
+
+        const newCandle: Candle = { time, open, high, low, close };
+
+        setCandles(prev => [...prev.slice(-29), newCandle]); 
+      } catch (err) {
+        console.error("Error fetching price:", err);
+      }
+    };
+
+    fetchPrice();
+    const interval = setInterval(fetchPrice, 1000); 
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [coin?.id, candles]);
 
   return (
     <div className="gradient-bg min-h-screen">
       <div className="max-w-[500px] w-full mx-auto px-4">
-        
         <div className="sticky top-0 z-10 border-b border-gray-800 bg-transparent backdrop-blur">
           <div className="px-4 py-4 flex items-center gap-3">
             <button
@@ -77,13 +103,10 @@ export default function CoinPage({ coins }: Props) {
           </div>
         </div>
 
-        <div className="min-h-[calc(100vh-72px)]">
+        <div className="min-h-[calc(100vh-72px)] mt-6">
+          <h1 className="text-white font-medium mb-2">График свечей</h1>
+          <CandlestickChart visibleData={candles} height={400} />
         </div>
-
-        <div className="mt-4">
-          <div ref={chartRef}></div>
-        </div>
-
       </div>
     </div>
   );
