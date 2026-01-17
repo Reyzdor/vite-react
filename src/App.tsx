@@ -19,7 +19,7 @@ function App() {
         const data = await res.json()
         setPrices(data)
       } catch (err) {
-        console.error("Error fetchig prices:", err)
+        console.error("Error fetching prices:", err)
       }
     }
 
