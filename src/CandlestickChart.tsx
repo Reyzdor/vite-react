@@ -24,6 +24,7 @@ export default function CandlestickChart({
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -33,7 +34,7 @@ export default function CandlestickChart({
 
     canvas.width = width * dpr;
     canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const padding = { top: 20, right: 60, bottom: 30, left: 50 };
     const chartWidth = width - padding.left - padding.right;
@@ -41,36 +42,48 @@ export default function CandlestickChart({
 
     ctx.clearRect(0, 0, width, height);
 
-    if (visibleData.length === 0) return;
+    if (!visibleData.length) return;
 
     const dataToShow = visibleData.slice(-visibleCount);
+    const count = dataToShow.length;
 
     const prices = dataToShow.flatMap(d => [d.high, d.low]);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
-    const priceRange = maxPrice - minPrice || 1;
+    const range = maxPrice - minPrice || 1;
+
+    const pricePadding = range * 0.05;
+    const paddedMin = minPrice - pricePadding;
+    const paddedMax = maxPrice + pricePadding;
+    const paddedRange = paddedMax - paddedMin;
 
     const priceToY = (price: number) =>
-      padding.top + chartHeight - ((price - minPrice) / priceRange) * chartHeight;
+      padding.top +
+      chartHeight -
+      ((price - paddedMin) / paddedRange) * chartHeight;
 
-    const candleWidth = Math.max(2, chartWidth / visibleCount * 0.7);
-    const candleSpacing = chartWidth / visibleCount;
-    
+    const candleWidth = 8; 
+    const candleGap = 4;  
+    const candleStep = candleWidth + candleGap;
+
+    const startX = padding.left + chartWidth - candleStep * (count - 1);
+
     ctx.strokeStyle = "rgba(255,255,255,0.1)";
-    ctx.lineWidth = 1;
     ctx.fillStyle = "#999";
     ctx.font = "10px monospace";
     ctx.textAlign = "right";
+    ctx.lineWidth = 1;
 
-    const gridLinesY = 6;
-    for (let i = 0; i <= gridLinesY; i++) {
-      const y = padding.top + (chartHeight / gridLinesY) * i;
+    const gridLines = 6;
+    for (let i = 0; i <= gridLines; i++) {
+      const y = padding.top + (chartHeight / gridLines) * i;
+
       ctx.beginPath();
       ctx.moveTo(padding.left, y);
       ctx.lineTo(width - padding.right, y);
       ctx.stroke();
 
-      const price = maxPrice - (priceRange / gridLinesY) * i;
+      const price = paddedMax - (paddedRange / gridLines) * i;
       ctx.fillText(price.toFixed(2), padding.left - 5, y + 3);
     }
 
@@ -79,31 +92,33 @@ export default function CandlestickChart({
       const isGreen = close >= open;
       const color = isGreen ? "#10b981" : "#ef4444";
 
-      const x = padding.left + index * candleSpacing + candleSpacing / 2;
+      const x = startX + index * candleStep;
+
       const yHigh = priceToY(high);
       const yLow = priceToY(low);
       const yOpen = priceToY(open);
       const yClose = priceToY(close);
 
       ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x, yHigh);
-      ctx.lineTo(x, yLow);
+      ctx.moveTo(x, Math.min(yHigh, yLow));
+      ctx.lineTo(x, Math.max(yHigh, yLow));
       ctx.stroke();
 
-      const bodyTop = Math.min(yOpen, yClose);
-      const bodyHeight = Math.max(Math.abs(yOpen - yClose), 1);
+      const rawHeight = Math.abs(yOpen - yClose);
+      const bodyHeight = Math.max(rawHeight, 1);
+      const bodyTop =
+        rawHeight < 1 ? (yOpen + yClose) / 2 - bodyHeight / 2 : Math.min(yOpen, yClose);
+
       ctx.fillStyle = color;
       ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
     });
 
-    const lastCandle = dataToShow[dataToShow.length - 1];
+    const lastCandle = dataToShow[count - 1];
     const yCurrent = priceToY(lastCandle.close);
 
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 1;
     ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = "#fff";
     ctx.beginPath();
     ctx.moveTo(padding.left, yCurrent);
     ctx.lineTo(width - padding.right, yCurrent);
