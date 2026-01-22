@@ -161,7 +161,7 @@ export default function CandlestickChart({
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: "115%", height: `${height}px` }}
+      style={{ width: "100%", height: `${height}px` }}
     />
   );
 }
