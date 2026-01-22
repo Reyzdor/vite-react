@@ -67,13 +67,15 @@ export default function CandlestickChart({
       const candleGap = 4;
       const candleStep = candleWidth + candleGap;
 
-      const targetStartX = padding.left + chartWidth - candleStep * (count - 1);
+      const targetStartX =
+        padding.left + chartWidth - candleStep * (count - 1);
 
       if (smoothStartXRef.current === null) {
         smoothStartXRef.current = targetStartX;
       }
 
-      smoothStartXRef.current += (targetStartX - smoothStartXRef.current) * 0.3;
+      smoothStartXRef.current +=
+        (targetStartX - smoothStartXRef.current) * 0.3;
 
       const startX = smoothStartXRef.current;
 
@@ -154,7 +156,6 @@ export default function CandlestickChart({
 
     const resizeObserver = new ResizeObserver(draw);
     resizeObserver.observe(parent);
-    draw();
 
     return () => resizeObserver.disconnect();
   }, [visibleData, visibleCount, height]);
