@@ -20,6 +20,7 @@ export default function CandlestickChart({
   height = 400,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const smoothStartXRef = useRef<number | null>(null);
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -62,11 +63,21 @@ export default function CandlestickChart({
       chartHeight -
       ((price - paddedMin) / paddedRange) * chartHeight;
 
-    const candleWidth = 8; 
-    const candleGap = 4;  
+    const candleWidth = 8;
+    const candleGap = 4;
     const candleStep = candleWidth + candleGap;
 
-    const startX = padding.left + chartWidth - candleStep * (count - 1);
+    const targetStartX =
+      padding.left + chartWidth - candleStep * (count - 1);
+
+    if (smoothStartXRef.current === null) {
+      smoothStartXRef.current = targetStartX;
+    }
+
+    smoothStartXRef.current +=
+      (targetStartX - smoothStartXRef.current) * 0.3;
+
+    const startX = smoothStartXRef.current;
 
     ctx.strokeStyle = "rgba(255,255,255,0.1)";
     ctx.fillStyle = "#999";
@@ -74,61 +85,89 @@ export default function CandlestickChart({
     ctx.textAlign = "right";
     ctx.lineWidth = 1;
 
-    const gridLines = 6;
-    for (let i = 0; i <= gridLines; i++) {
-      const y = padding.top + (chartHeight / gridLines) * i;
-
+    for (let i = 0; i <= 6; i++) {
+      const y = padding.top + (chartHeight / 6) * i;
       ctx.beginPath();
       ctx.moveTo(padding.left, y);
       ctx.lineTo(width - padding.right, y);
       ctx.stroke();
 
-      const price = paddedMax - (paddedRange / gridLines) * i;
+      const price = paddedMax - (paddedRange / 6) * i;
       ctx.fillText(price.toFixed(2), padding.left - 5, y + 3);
     }
 
     dataToShow.forEach((candle, index) => {
-      const { open, high, low, close } = candle;
-      const isGreen = close >= open;
-      const color = isGreen ? "#10b981" : "#ef4444";
+      const color =
+        candle.close >= candle.open ? "#10b981" : "#ef4444";
 
       const x = startX + index * candleStep;
 
-      const yHigh = priceToY(high);
-      const yLow = priceToY(low);
-      const yOpen = priceToY(open);
-      const yClose = priceToY(close);
+      const yHigh = priceToY(candle.high);
+      const yLow = priceToY(candle.low);
+      const yOpen = priceToY(candle.open);
+      const yClose = priceToY(candle.close);
 
       ctx.strokeStyle = color;
       ctx.beginPath();
-      ctx.moveTo(x, Math.min(yHigh, yLow));
-      ctx.lineTo(x, Math.max(yHigh, yLow));
+      ctx.moveTo(x, yHigh);
+      ctx.lineTo(x, yLow);
       ctx.stroke();
 
-      const rawHeight = Math.abs(yOpen - yClose);
-      const bodyHeight = Math.max(rawHeight, 1);
-      const bodyTop =
-        rawHeight < 1 ? (yOpen + yClose) / 2 - bodyHeight / 2 : Math.min(yOpen, yClose);
-
+      const bodyHeight = Math.max(Math.abs(yOpen - yClose), 1);
       ctx.fillStyle = color;
-      ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+      ctx.fillRect(
+        x - candleWidth / 2,
+        Math.min(yOpen, yClose),
+        candleWidth,
+        bodyHeight
+      );
     });
 
     const lastCandle = dataToShow[count - 1];
     const yCurrent = priceToY(lastCandle.close);
 
-    ctx.setLineDash([5, 5]);
-    ctx.strokeStyle = "#fff";
+    const rawStartX =
+      startX + (count - 1) * candleStep + candleWidth / 2;
+
+    const priceLineX = width - padding.right;
+    
+    const limitedStartX = Math.max(
+      Math.min(rawStartX, priceLineX - 1), 
+      padding.left 
+    );
+
+    const limitedYCurrent = Math.max(
+      Math.min(yCurrent, padding.top + chartHeight),
+      padding.top
+    );
+
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle =
+      lastCandle.close >= lastCandle.open ? "#10b981" : "#ef4444";
+    ctx.lineWidth = 0.8;
+
     ctx.beginPath();
-    ctx.moveTo(padding.left, yCurrent);
-    ctx.lineTo(width - padding.right, yCurrent);
+    ctx.moveTo(limitedStartX, limitedYCurrent);
+    ctx.lineTo(priceLineX, limitedYCurrent);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = lastCandle.close >= lastCandle.open ? "#10b981" : "#ef4444";
-    ctx.textAlign = "left";
-    ctx.fillText(lastCandle.close.toFixed(2), width - padding.right + 5, yCurrent + 3);
+    ctx.fillStyle =
+      lastCandle.close >= lastCandle.open ? "#10b981" : "#ef4444";
+    ctx.font = "9px monospace";
+    ctx.textAlign = "right";
+
+    ctx.fillText(
+      lastCandle.close.toFixed(2),
+      priceLineX - 2,
+      limitedYCurrent + 3
+    );
   }, [visibleData, visibleCount, height]);
 
-  return <canvas ref={canvasRef} style={{ width: "100%", height: `${height}px` }} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: "115%", height: `${height}px` }}
+    />
+  );
 }
