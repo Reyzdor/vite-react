@@ -126,15 +126,9 @@ export default function CandlestickChart({
     const lastCandle = dataToShow[count - 1];
     const yCurrent = priceToY(lastCandle.close);
 
-    const rawStartX =
-      startX + (count - 1) * candleStep + candleWidth / 2;
-
-    const priceLineX = width - padding.right;
-    
-    const limitedStartX = Math.max(
-      Math.min(rawStartX, priceLineX - 1), 
-      padding.left 
-    );
+    const priceLineX = width - padding.right - candleWidth / 2;
+    const rawStartX = startX + (count - 1) * candleStep;
+    const limitedStartX = Math.min(rawStartX, priceLineX);
 
     const limitedYCurrent = Math.max(
       Math.min(yCurrent, padding.top + chartHeight),
